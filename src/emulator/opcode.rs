@@ -79,8 +79,8 @@ pub(crate) enum AddressMode {
     IVx{ x: u8 },
     FontVx{ x: u8 },
     BcdVx{ x: u8 },
-    AddrIVx{ address: u16, x: u8 },
-    VxAddrI{ address: u16, x: u8 }
+    AddrIVx{ x: u8 },
+    VxAddrI{ x: u8 }
 }
 
 #[derive(Clone, Copy)]
@@ -241,11 +241,11 @@ impl From<u16> for OpCode {
                 },
                 0x0055 => Self {
                     instr: Instruction::LD,
-                    address_mode: AddressMode::AddrIVx { address: nnn!(raw), x: x!(raw) }
+                    address_mode: AddressMode::AddrIVx { x: x!(raw) }
                 },
                 0x0065 => Self {
                     instr: Instruction::LD,
-                    address_mode: AddressMode::VxAddrI { address: nnn!(raw), x: x!(raw) }
+                    address_mode: AddressMode::VxAddrI { x: x!(raw) }
                 },
                 _ => Self::raw(raw)
             },

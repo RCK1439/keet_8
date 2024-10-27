@@ -193,7 +193,6 @@ impl Emulator {
 
     fn ld(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
-            AddressMode::Addr { address } => todo!(),
             AddressMode::VxByte { x, byte } => {
                 self.registers[x as usize] = byte;
             },
@@ -203,9 +202,6 @@ impl Emulator {
             AddressMode::IAddr { address } => {
                 self.idx = address;
             },
-            AddressMode::V0Addr { address } => todo!(),
-            AddressMode::VxVyN { x, y, nibble } => todo!(),
-            AddressMode::Vx { x } => todo!(),
             AddressMode::VxDt { x } => {
                 self.registers[x as usize] = self.delay_timer;
             },
@@ -227,67 +223,210 @@ impl Emulator {
                 self.delay_timer = self.registers[x as usize];
             },
             AddressMode::StVx { x } => {
-                self.sound_timer = self.registers[y as usize];
+                self.sound_timer = self.registers[x as usize];
             },
-            AddressMode::IVx { x } => todo!(),
             AddressMode::FontVx { x } => {
                 let digit = self.registers[x as usize];
                 self.idx = 0x0050 + (5 * digit as u16);
             },
-            AddressMode::BcdVx { x } => todo!(),
-            AddressMode::AddrIVx { address, x } => todo!(),
-            AddressMode::VxAddrI { address, x } => todo!(),
+            AddressMode::BcdVx { x } => {
+                let mut value = self.registers[x as usize];
+                self.memory[self.idx + 2] = value % 10;
+
+                value /= 10;
+                self.memory[self.idx + 1] = value % 10;
+
+                value /= 10;
+                self.memory[self.idx + 0] = value % 10;
+            },
+            AddressMode::AddrIVx { x } => {
+                for i in 0..x {
+                    self.memory[i as u16] = self.registers[i as usize];
+                }
+                self.memory[x as u16] = self.registers[x as usize];
+            },
+            AddressMode::VxAddrI { x } => {
+                for i in 0..x {
+                    self.registers[i as usize] = self.memory[i as u16];
+                }
+                self.registers[x as usize] = self.memory[x as u16];
+            },
             _ => return Err(Keet8Error::InvalidAddressMode)
         }
 
-        todo!()
+        Ok(())
     }
 
     fn add(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        match opcode.address_mode {
+            AddressMode::VxByte { x, byte } => {
+                self.registers[x as usize] += byte;
+            },
+            AddressMode::VxVy { x, y } => {
+                let sum = self.registers[x as usize] as u16 + self.registers[y as usize] as u16;
+                if sum > 0x00FF {
+                    self.registers[0x0F] = 1;
+                } else {
+                    self.registers[0x0F] = 0;
+                }
+
+                self.registers[x as usize] = (sum & 0x00FF) as u8;
+            },
+            AddressMode::IVx { x } => {
+                self.idx += self.registers[x as usize] as u16;
+            },
+            _ => return Err(Keet8Error::InvalidAddressMode)
+        }
+        
+        Ok(())
     }
 
     fn or(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y } = opcode.address_mode {
+            self.registers[x as usize] |= self.registers[y as usize];
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn and(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y } = opcode.address_mode {
+            self.registers[x as usize] &= self.registers[y as usize];
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn xor(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y } = opcode.address_mode {
+            self.registers[x as usize] ^= self.registers[y as usize];
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn sub(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y } = opcode.address_mode {
+            if self.registers[x as usize] > self.registers[y as usize] {
+                self.registers[0x0F] = 1;
+            } else {
+                self.registers[0x0F] = 0;
+            }
+
+            self.registers[x as usize] -= self.registers[y as usize];
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn shr(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
+            self.registers[0x0F] = self.registers[x as usize] & 0x01;
+            self.registers[x as usize] >>= 1;
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn subn(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y } = opcode.address_mode {
+            if self.registers[y as usize] > self.registers[x as usize] {
+                self.registers[0x0F] = 1;
+            } else {
+                self.registers[0x0F] = 0;
+            }
+
+            self.registers[x as usize] = self.registers[y as usize] - self.registers[x as usize];
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn shl(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
+            self.registers[0x0F] = (self.registers[x as usize] & 0x80) >> 7;
+            self.registers[x as usize] <<= 1;
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn rnd(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxByte { x, byte } = opcode.address_mode {
+            self.registers[x as usize] = rand::random::<u8>() & byte;
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn drw(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::VxVyN { x, y, nibble } = opcode.address_mode {
+            let height = nibble;
+            let xp = self.registers[x as usize] % VIDEO_BUFFER_WIDTH as u8;
+            let yp = self.registers[y as usize] % VIDEO_BUFFER_HEIGHT as u8;
+
+            self.registers[0x0F] = 0;
+            for r in 0..height {
+                let sprite = self.memory[self.idx + r as u16];
+                for c in 0..8 {
+                    let sprite_px = sprite & (0x80 >> c);
+                    let screen_idx = (yp + r) * VIDEO_BUFFER_WIDTH as u8+ (xp + c);
+
+                    if sprite_px > 0 {
+                        if self.video_buffer[screen_idx as usize] == 0xFF {
+                            self.registers[0x0F] = 1;
+                        }
+
+                        self.video_buffer[screen_idx as usize] ^= 0xFF;
+                    }
+                }
+            }
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn skp(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::Vx { x } = opcode.address_mode {
+            let key = self.registers[x as usize];
+            if self.keypad[key as usize] > 0 {
+                self.program_counter += 2;
+            }
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 
     fn sknp(&mut self, opcode: OpCode) -> Result<()> {
-        todo!()
+        if let AddressMode::Vx { x } = opcode.address_mode {
+            let key = self.registers[x as usize];
+            if self.keypad[key as usize] <= 0 {
+                self.program_counter += 2;
+            }
+        } else {
+            return Err(Keet8Error::InvalidAddressMode);
+        }
+
+        Ok(())
     }
 }

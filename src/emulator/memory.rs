@@ -23,7 +23,11 @@ impl Memory {
             data[PROG_START_ADDR + i] = bytes[i];
         }
 
-        todo!()
+        load_font(&mut data);
+
+        Ok(Self {
+            data
+        })
     }
 }
 
