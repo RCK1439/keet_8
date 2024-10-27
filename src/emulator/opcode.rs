@@ -35,6 +35,8 @@ macro_rules! nnn {
     };
 }
 
+#[repr(usize)]
+#[derive(Clone, Copy)]
 pub(crate) enum Instruction {
     RAW,
     CLS,
@@ -59,6 +61,7 @@ pub(crate) enum Instruction {
     SKNP
 }
 
+#[derive(Clone, Copy)]
 pub(crate) enum AddressMode {
     None,
     OpCode{ opcode: u16 },
@@ -80,6 +83,7 @@ pub(crate) enum AddressMode {
     VxAddrI{ address: u16, x: u8 }
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct OpCode {
     pub instr: Instruction,
     pub address_mode: AddressMode,
