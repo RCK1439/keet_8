@@ -1,6 +1,6 @@
+pub mod opcode;
 mod memory;
 mod stack;
-mod opcode;
 
 use memory::Memory;
 use stack::Stack;
@@ -20,7 +20,7 @@ const SCALE: i32 = 1024 / 64;
 
 type Executor = fn(&mut Emulator, opcode: OpCode) -> Result<()>;
 
-pub(crate) struct Emulator {
+pub struct Emulator {
     registers: [u8; NUM_REGISTERS],
 
     idx: u16,
@@ -43,7 +43,7 @@ impl Emulator {
             registers: [0; NUM_REGISTERS],
 
             idx: 0,
-            program_counter: 0,
+            program_counter: memory::PROG_START_ADDR as u16,
 
             delay_timer: 0,
             sound_timer: 0,
@@ -136,9 +136,13 @@ impl Emulator {
 
     fn jp(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
-            AddressMode::Addr { address } => self.program_counter = address,
-            AddressMode::V0Addr { address } => self.program_counter = self.registers[0x00] as u16 + address,
-            _ => return Err(Keet8Error::InvalidAddressMode)
+            AddressMode::Addr { address } => {
+                self.program_counter = address;
+            },
+            AddressMode::V0Addr { address } => {
+                self.program_counter = self.registers[0x00] as u16 + address
+            },
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
 
         Ok(())
@@ -149,7 +153,7 @@ impl Emulator {
             self.stack.push(self.program_counter);
             self.program_counter = address;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -167,7 +171,7 @@ impl Emulator {
                     self.program_counter += 2;
                 }
             },
-            _ => return Err(Keet8Error::InvalidAddressMode)
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
         
         Ok(())
@@ -185,7 +189,7 @@ impl Emulator {
                     self.program_counter += 2;
                 }
             },
-            _ => return Err(Keet8Error::InvalidAddressMode)
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
 
         Ok(())
@@ -240,18 +244,16 @@ impl Emulator {
                 self.memory[self.idx + 0] = value % 10;
             },
             AddressMode::AddrIVx { x } => {
-                for i in 0..x {
-                    self.memory[i as u16] = self.registers[i as usize];
+                for i in 0..=x {
+                    self.memory[self.idx + i as u16] = self.registers[i as usize];
                 }
-                self.memory[x as u16] = self.registers[x as usize];
             },
             AddressMode::VxAddrI { x } => {
-                for i in 0..x {
-                    self.registers[i as usize] = self.memory[i as u16];
+                for i in 0..=x {
+                    self.registers[i as usize] = self.memory[self.idx + i as u16];
                 }
-                self.registers[x as usize] = self.memory[x as u16];
             },
-            _ => return Err(Keet8Error::InvalidAddressMode)
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
 
         Ok(())
@@ -260,7 +262,7 @@ impl Emulator {
     fn add(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
-                self.registers[x as usize] += byte;
+                self.registers[x as usize] = self.registers[x as usize].overflowing_add(byte).0;
             },
             AddressMode::VxVy { x, y } => {
                 let sum = self.registers[x as usize] as u16 + self.registers[y as usize] as u16;
@@ -275,7 +277,7 @@ impl Emulator {
             AddressMode::IVx { x } => {
                 self.idx += self.registers[x as usize] as u16;
             },
-            _ => return Err(Keet8Error::InvalidAddressMode)
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
         
         Ok(())
@@ -285,7 +287,7 @@ impl Emulator {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
             self.registers[x as usize] |= self.registers[y as usize];
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -295,7 +297,7 @@ impl Emulator {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
             self.registers[x as usize] &= self.registers[y as usize];
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -305,7 +307,7 @@ impl Emulator {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
             self.registers[x as usize] ^= self.registers[y as usize];
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -319,9 +321,9 @@ impl Emulator {
                 self.registers[0x0F] = 0;
             }
 
-            self.registers[x as usize] -= self.registers[y as usize];
+            self.registers[x as usize] = self.registers[x as usize].overflowing_sub(self.registers[y as usize]).0;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -332,7 +334,7 @@ impl Emulator {
             self.registers[0x0F] = self.registers[x as usize] & 0x01;
             self.registers[x as usize] >>= 1;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -346,9 +348,9 @@ impl Emulator {
                 self.registers[0x0F] = 0;
             }
 
-            self.registers[x as usize] = self.registers[y as usize] - self.registers[x as usize];
+            self.registers[x as usize] = self.registers[y as usize].overflowing_sub(self.registers[x as usize]).0;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -359,7 +361,7 @@ impl Emulator {
             self.registers[0x0F] = (self.registers[x as usize] & 0x80) >> 7;
             self.registers[x as usize] <<= 1;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -369,7 +371,7 @@ impl Emulator {
         if let AddressMode::VxByte { x, byte } = opcode.address_mode {
             self.registers[x as usize] = rand::random::<u8>() & byte;
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -386,7 +388,7 @@ impl Emulator {
                 let sprite = self.memory[self.idx + r as u16];
                 for c in 0..8 {
                     let sprite_px = sprite & (0x80 >> c);
-                    let screen_idx = (yp + r) * VIDEO_BUFFER_WIDTH as u8+ (xp + c);
+                    let screen_idx = (yp as usize + r as usize) * VIDEO_BUFFER_WIDTH + (xp as usize + c);
 
                     if sprite_px > 0 {
                         if self.video_buffer[screen_idx as usize] == 0xFF {
@@ -398,7 +400,7 @@ impl Emulator {
                 }
             }
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -411,7 +413,7 @@ impl Emulator {
                 self.program_counter += 2;
             }
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())
@@ -424,7 +426,7 @@ impl Emulator {
                 self.program_counter += 2;
             }
         } else {
-            return Err(Keet8Error::InvalidAddressMode);
+            return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
 
         Ok(())

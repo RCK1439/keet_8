@@ -1,11 +1,13 @@
 use std::fmt::Display;
 
+use crate::emulator::opcode::AddressMode;
+
 pub enum Keet8Error {
     NoROMFile,
     FailedToLoadROM(String),
 
     StackEmpty,
-    InvalidAddressMode,
+    InvalidAddressMode(AddressMode),
 }
 
 impl Display for Keet8Error {
@@ -14,7 +16,7 @@ impl Display for Keet8Error {
             Self::NoROMFile => write!(f, "No ROM file specified"),
             Self::FailedToLoadROM(rom) => write!(f, "Failed to load ROM: {rom}"),
             Self::StackEmpty => write!(f, "Stack empty"),
-            Self::InvalidAddressMode => write!(f, "Invalid address mode"),
+            Self::InvalidAddressMode(addr_mode) => write!(f, "Invalid address mode: {addr_mode}"),
         }
     }
 }

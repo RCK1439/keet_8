@@ -1,7 +1,7 @@
 
 const STACK_SIZE: usize = 32;
 
-pub(crate) struct Stack {
+pub struct Stack {
     data: [u16; STACK_SIZE],
     ptr: usize,
 }

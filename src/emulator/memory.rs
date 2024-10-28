@@ -4,12 +4,12 @@ use crate::prelude::*;
 use std::ops::{ Index, IndexMut };
 
 const MEMORY_SIZE: usize = 4 * 1024;
-const PROG_START_ADDR: usize = 0x0200;
+pub const PROG_START_ADDR: usize = 0x0200;
 
 const FONTSET_SIZE: usize = 80;
 const FONT_ADDR: usize = 0x0050;
 
-pub(crate) struct Memory {
+pub struct Memory {
     data: [u8; MEMORY_SIZE]
 }
 

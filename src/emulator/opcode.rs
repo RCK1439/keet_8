@@ -1,3 +1,4 @@
+use std::fmt::Display;
 
 macro_rules! instr {
     ($raw:expr) => {
@@ -37,11 +38,11 @@ macro_rules! nnn {
 
 #[repr(usize)]
 #[derive(Clone, Copy)]
-pub(crate) enum Instruction {
+pub enum Instruction {
     RAW,
     CLS,
     RET,
-    SYS,
+    #[allow(unused)] SYS,
     JP,
     CALL,
     SE,
@@ -61,8 +62,36 @@ pub(crate) enum Instruction {
     SKNP
 }
 
+impl Display for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Instruction::RAW => write!(f, "raw"),
+            Instruction::CLS => write!(f, "cls"),
+            Instruction::RET => write!(f, "ret"),
+            Instruction::SYS => write!(f, "sys"),
+            Instruction::JP => write!(f, "jp"),
+            Instruction::CALL => write!(f, "call"),
+            Instruction::SE => write!(f, "se"),
+            Instruction::SNE => write!(f, "sne"),
+            Instruction::LD => write!(f, "ld"),
+            Instruction::ADD => write!(f, "add"),
+            Instruction::OR => write!(f, "or"),
+            Instruction::AND => write!(f, "and"),
+            Instruction::XOR => write!(f, "xor"),
+            Instruction::SUB => write!(f, "sub"),
+            Instruction::SHR => write!(f, "shr"),
+            Instruction::SUBN => write!(f, "subn"),
+            Instruction::SHL => write!(f, "shl"),
+            Instruction::RND => write!(f, "rnd"),
+            Instruction::DRW => write!(f, "drw"),
+            Instruction::SKP => write!(f, "skp"),
+            Instruction::SKNP => write!(f, "sknp"),
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
-pub(crate) enum AddressMode {
+pub enum AddressMode {
     None,
     OpCode{ opcode: u16 },
     Addr{ address: u16 },
@@ -83,8 +112,33 @@ pub(crate) enum AddressMode {
     VxAddrI{ x: u8 }
 }
 
+impl Display for AddressMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AddressMode::None => write!(f, ""),
+            AddressMode::OpCode { opcode } => write!(f, "0x{:04x}", opcode),
+            AddressMode::Addr { address } => write!(f, "0x{:04x}", address),
+            AddressMode::VxByte { x, byte } => write!(f, "v{x} {byte}"),
+            AddressMode::VxVy { x, y } => write!(f, "v{x} v{y}"),
+            AddressMode::IAddr { address } => write!(f, "0x{:04x}", address),
+            AddressMode::V0Addr { address } => write!(f, "0x{:04x}", address),
+            AddressMode::VxVyN { x, y, nibble } => write!(f, "v{x} v{y} {nibble}"),
+            AddressMode::Vx { x } => write!(f, "v{x}"),
+            AddressMode::VxDt { x } => write!(f, "v{x}"),
+            AddressMode::VxKey { x } => write!(f, "v{x}"),
+            AddressMode::DtVx { x } => write!(f, "v{x}"),
+            AddressMode::StVx { x } => write!(f, "v{x}"),
+            AddressMode::IVx { x } => write!(f, "v{x}"),
+            AddressMode::FontVx { x } => write!(f, "v{x}"),
+            AddressMode::BcdVx { x } => write!(f, "v{x}"),
+            AddressMode::AddrIVx { x } => write!(f, "v{x}"),
+            AddressMode::VxAddrI { x } => write!(f, "v{x}"),
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
-pub(crate) struct OpCode {
+pub struct OpCode {
     pub instr: Instruction,
     pub address_mode: AddressMode,
 }
@@ -251,5 +305,11 @@ impl From<u16> for OpCode {
             },
             _ => Self::raw(raw)
         }
+    }
+}
+
+impl Display for OpCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.instr, self.address_mode)
     }
 }
