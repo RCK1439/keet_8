@@ -4,11 +4,11 @@ use std::ops::{ Index, IndexMut };
 
 // --- constants --------------------------------------------------------------
 
-pub const PROG_START_ADDR: usize = 0x0200;
-const MEMORY_SIZE: usize = 4 * 1024;
+pub const PROG_ADDR: usize = 0x0200;
+pub const FONT_ADDR: usize = 0x0050;
 
+const MEMORY_SIZE: usize = 4 * 1024;
 const FONTSET_SIZE: usize = 80;
-const FONT_ADDR: usize = 0x0050;
 
 // --- memory definition ------------------------------------------------------
 
@@ -32,7 +32,7 @@ impl Memory {
 
         let mut data = [0u8; MEMORY_SIZE];
         for i in 0..bytes.len() {
-            data[PROG_START_ADDR + i] = bytes[i];
+            data[PROG_ADDR + i] = bytes[i];
         }
 
         load_font(&mut data);

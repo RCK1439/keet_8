@@ -58,7 +58,7 @@ impl Emulator {
             registers: [0; NUM_REGISTERS],
 
             idx: 0,
-            program_counter: memory::PROG_START_ADDR as u16,
+            program_counter: memory::PROG_ADDR as u16,
 
             delay_timer: 0,
             sound_timer: 0,
@@ -362,7 +362,7 @@ impl Emulator {
             },
             AddressMode::FontVx { x } => {
                 let digit = self.registers[x as usize];
-                self.idx = 0x0050 + (5 * digit as u16);
+                self.idx = memory::FONT_ADDR as u16 + (5 * digit as u16);
             },
             AddressMode::BcdVx { x } => {
                 let mut value = self.registers[x as usize];
