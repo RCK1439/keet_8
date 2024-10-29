@@ -1,5 +1,8 @@
 use std::process::ExitCode;
 
+// --- main routine -----------------------------------------------------------
+
+/// The main entry point of the program
 fn main() -> ExitCode {
     let args = std::env::args()
         .collect();

@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use crate::emulator::opcode::AddressMode;
 
+// --- error definition -------------------------------------------------------
+
 pub enum Keet8Error {
     NoROMFile,
     FailedToLoadROM(String),

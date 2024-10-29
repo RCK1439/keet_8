@@ -2,12 +2,24 @@ mod error;
 mod prelude;
 mod emulator;
 
-use emulator::Emulator;
 use raylib::prelude::*;
 
-use error::Keet8Error; 
+use emulator::Emulator;
 use prelude::*;
 
+// --- keet-8 interface -------------------------------------------------------
+
+/// Runs the application
+/// 
+/// # Params
+/// 
+/// - `args` - The command-line arguments
+/// 
+/// # Errors
+/// 
+/// - If no ROM file was provided
+/// - If there was an error when loading the ROM
+/// - If there was an error during runtime
 pub fn run(args: Vec<String>) -> Result<()> {
     if args.len() < 2 {
         return Err(Keet8Error::NoROMFile);
@@ -16,6 +28,8 @@ pub fn run(args: Vec<String>) -> Result<()> {
     let mut app = Application::new(&args[1])?;
     app.run()
 }
+
+// --- application definition -------------------------------------------------
 
 struct Application {
     rl: RaylibHandle,
@@ -28,6 +42,15 @@ struct Application {
 }
 
 impl Application {
+    /// Creates an instance of the application and initializes raylib
+    /// 
+    /// # Params
+    /// 
+    /// - `rom_file` - The filepath to the ROM file
+    /// 
+    /// # Errors
+    /// 
+    /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let (mut rl, thread) = raylib::init()
             .size(1024, 512)
@@ -49,6 +72,11 @@ impl Application {
         })
     }
 
+    /// Runs the application
+    /// 
+    /// # Errors
+    /// 
+    /// If an error occured during runtime of the emulator
     pub fn run(&mut self) -> Result<()> {
         while self.is_running {
             self.on_update()?;
@@ -58,6 +86,11 @@ impl Application {
         Ok(())
     }
 
+    /// Called once per frame to update the logic of the application
+    /// 
+    /// # Errors
+    /// 
+    /// If an error has occured during runtime of the emulator
     fn on_update(&mut self) -> Result<()> {
         self.process_input();
         self.emulator.step()?;
@@ -73,6 +106,7 @@ impl Application {
         Ok(())
     }
 
+    /// Called once per frame to draw everything to the window
     fn on_render(&mut self) {
         let mut d = self.rl.begin_drawing(&self.thread);
         d.clear_background(Color::BLACK);
@@ -83,6 +117,7 @@ impl Application {
         }
     }
 
+    /// Processes the keyboard input
     fn process_input(&mut self) {
         const NUM_KEYS: usize = 16;
         const KEYBOARD_KEY: [KeyboardKey; NUM_KEYS] = [

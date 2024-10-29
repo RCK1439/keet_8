@@ -1,19 +1,31 @@
-use crate::error::Keet8Error;
 use crate::prelude::*;
 
 use std::ops::{ Index, IndexMut };
 
-const MEMORY_SIZE: usize = 4 * 1024;
+// --- constants --------------------------------------------------------------
+
 pub const PROG_START_ADDR: usize = 0x0200;
+const MEMORY_SIZE: usize = 4 * 1024;
 
 const FONTSET_SIZE: usize = 80;
 const FONT_ADDR: usize = 0x0050;
+
+// --- memory definition ------------------------------------------------------
 
 pub struct Memory {
     data: [u8; MEMORY_SIZE]
 }
 
 impl Memory {
+    /// Creates and initializes the memory for the emulator
+    /// 
+    /// # Params
+    /// 
+    /// - `rom_file` - The filepath to the ROM to load into memory
+    /// 
+    /// # Errors
+    /// 
+    /// - If there was an error when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let bytes = std::fs::read(rom_file)
             .map_err(|_| Keet8Error::FailedToLoadROM(rom_file.to_string()))?;
@@ -34,6 +46,15 @@ impl Memory {
 impl Index<u16> for Memory {
     type Output = u8;
 
+    /// Gets the value at the specified 16-bit address
+    /// 
+    /// # Params
+    /// 
+    /// - `addr` - The memory address to read
+    /// 
+    /// # Panics
+    /// 
+    /// If the address is out of the address space range
     fn index(&self, addr: u16) -> &Self::Output {
         let idx = (addr & 0x0FFF) as usize;
         &self.data[idx]
@@ -41,12 +62,28 @@ impl Index<u16> for Memory {
 }
 
 impl IndexMut<u16> for Memory {
+    /// Gets the value at the specified 16-bit address (mutably)
+    /// 
+    /// # Params
+    /// 
+    /// - `addr` - The memory address to read
+    /// 
+    /// # Panics
+    /// 
+    /// If the address is out of the address space range
     fn index_mut(&mut self, addr: u16) -> &mut Self::Output {
         let idx = (addr & 0x0FFF) as usize;
         &mut self.data[idx]
     }
 }
 
+// --- utility functions ------------------------------------------------------
+
+/// Loads the font data of Chip-8 into the given buffer
+/// 
+/// # Params
+/// 
+/// - `buffer` - The buffer to load the font into 
 fn load_font(buffer: &mut [u8; MEMORY_SIZE]) {
     const FONTSET: [u8; FONTSET_SIZE] = [
     	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0

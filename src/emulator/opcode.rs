@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+// --- macros -----------------------------------------------------------------
+
 macro_rules! instr {
     ($raw:expr) => {
         (($raw) & 0xF000)
@@ -35,6 +37,8 @@ macro_rules! nnn {
         (($raw) & 0x0FFF) as u16
     };
 }
+
+// --- instruction definition -------------------------------------------------
 
 #[repr(usize)]
 #[derive(Clone, Copy)]
@@ -90,6 +94,8 @@ impl Display for Instruction {
     }
 }
 
+// --- address mode definition ------------------------------------------------
+
 #[derive(Clone, Copy)]
 pub enum AddressMode {
     None,
@@ -120,15 +126,15 @@ impl Display for AddressMode {
             AddressMode::Addr { address } => write!(f, "0x{:04x}", address),
             AddressMode::VxByte { x, byte } => write!(f, "v{x} {byte}"),
             AddressMode::VxVy { x, y } => write!(f, "v{x} v{y}"),
-            AddressMode::IAddr { address } => write!(f, "0x{:04x}", address),
-            AddressMode::V0Addr { address } => write!(f, "0x{:04x}", address),
+            AddressMode::IAddr { address } => write!(f, "I 0x{:04x}", address),
+            AddressMode::V0Addr { address } => write!(f, "v0 0x{:04x}", address),
             AddressMode::VxVyN { x, y, nibble } => write!(f, "v{x} v{y} {nibble}"),
             AddressMode::Vx { x } => write!(f, "v{x}"),
-            AddressMode::VxDt { x } => write!(f, "v{x}"),
-            AddressMode::VxKey { x } => write!(f, "v{x}"),
-            AddressMode::DtVx { x } => write!(f, "v{x}"),
-            AddressMode::StVx { x } => write!(f, "v{x}"),
-            AddressMode::IVx { x } => write!(f, "v{x}"),
+            AddressMode::VxDt { x } => write!(f, "v{x} dt"),
+            AddressMode::VxKey { x } => write!(f, "v{x} [key]"),
+            AddressMode::DtVx { x } => write!(f, "dt v{x}"),
+            AddressMode::StVx { x } => write!(f, "st v{x}"),
+            AddressMode::IVx { x } => write!(f, "I v{x}"),
             AddressMode::FontVx { x } => write!(f, "v{x}"),
             AddressMode::BcdVx { x } => write!(f, "v{x}"),
             AddressMode::AddrIVx { x } => write!(f, "v{x}"),
@@ -137,6 +143,8 @@ impl Display for AddressMode {
     }
 }
 
+// --- opcode definition ------------------------------------------------------
+
 #[derive(Clone, Copy)]
 pub struct OpCode {
     pub instr: Instruction,
@@ -144,6 +152,11 @@ pub struct OpCode {
 }
 
 impl OpCode {
+    /// Creates an opcode from a raw opcode found in the ROM binary
+    /// 
+    /// # Params
+    /// 
+    /// - `opcode` - The raw binary opcode in the ROM file
     fn raw(opcode: u16) -> Self {
         Self {
             instr: Instruction::RAW,
@@ -153,6 +166,12 @@ impl OpCode {
 }
 
 impl From<u16> for OpCode {
+    /// Creates an opcode struct from the raw binary opcode found in the ROM
+    /// file
+    /// 
+    /// # Params
+    /// 
+    /// - `raw` - The raw binary opcode
     fn from(raw: u16) -> Self {
         match instr!(raw) {
             0x0000 => match raw & 0x00FF {
