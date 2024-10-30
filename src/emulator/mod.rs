@@ -17,6 +17,8 @@ const NUM_KEYS: usize = 16;
 
 const VIDEO_BUFFER_WIDTH: usize = 64;
 const VIDEO_BUFFER_HEIGHT: usize = 32;
+
+const PIXEL_COLOR: Color = Color { r: 0, g: 228, b: 48, a: 255 };
 const SCALE: i32 = 1024 / 64;
 
 // --- type definitions -------------------------------------------------------
@@ -136,7 +138,7 @@ impl Emulator {
         for y in 0..VIDEO_BUFFER_HEIGHT {
             for x in 0..VIDEO_BUFFER_WIDTH {
                 if self.video_buffer[x + y * VIDEO_BUFFER_WIDTH] > 0 {
-                    d.draw_rectangle(x as i32 * SCALE, y as i32 * SCALE, SCALE, SCALE, Color::GREEN);
+                    d.draw_rectangle(x as i32 * SCALE, y as i32 * SCALE, SCALE, SCALE, PIXEL_COLOR);
                 }
             }
         }
@@ -375,14 +377,10 @@ impl Emulator {
                 self.memory[self.idx + 0] = value % 10;
             },
             AddressMode::AddrIVx { x } => {
-                for i in 0..=x {
-                    self.memory[self.idx + i as u16] = self.registers[i as usize];
-                }
+                (0..=x).for_each(|i| self.memory[self.idx + i as u16] = self.registers[i]);
             },
             AddressMode::VxAddrI { x } => {
-                for i in 0..=x {
-                    self.registers[i as usize] = self.memory[self.idx + i as u16];
-                }
+                (0..=x).for_each(|i| self.registers[i] = self.memory[self.idx + i as u16]);
             },
             _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
