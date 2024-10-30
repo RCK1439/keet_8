@@ -141,9 +141,9 @@ impl Application {
 
         for k in 0..NUM_KEYS {
             if self.rl.is_key_down(KEYBOARD_KEY[k]) {
-                self.emulator.set_key(k as u8, 1);
+                self.emulator.set_key(k, 1);
             } else {
-                self.emulator.set_key(k as u8, 0);
+                self.emulator.set_key(k, 0);
             }
         }
     }

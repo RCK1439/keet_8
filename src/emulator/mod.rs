@@ -58,7 +58,7 @@ impl Emulator {
             registers: [0; NUM_REGISTERS],
 
             idx: 0,
-            program_counter: memory::PROG_ADDR as u16,
+            program_counter: memory::PROG_ADDR,
 
             delay_timer: 0,
             sound_timer: 0,
@@ -123,8 +123,8 @@ impl Emulator {
     /// 
     /// - `key` - The key to assign the value to
     /// - `val` - The value to assign to the key
-    pub fn set_key(&mut self, key: u8, val: u8) {
-        self.keypad[key as usize] = val;
+    pub fn set_key(&mut self, key: usize, val: u8) {
+        self.keypad[key] = val;
     }
 
     /// Draws the video buffer data to the window
@@ -271,12 +271,12 @@ impl Emulator {
     fn se(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
-                if self.registers[x as usize] == byte {
+                if self.registers[x] == byte {
                     self.program_counter += 2;
                 }
             },
             AddressMode::VxVy { x, y } => {
-                if self.registers[x as usize] == self.registers[y as usize] {
+                if self.registers[x] == self.registers[y] {
                     self.program_counter += 2;
                 }
             },
@@ -300,12 +300,12 @@ impl Emulator {
     fn sne(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
-                if self.registers[x as usize] != byte {
+                if self.registers[x] != byte {
                     self.program_counter += 2;
                 }
             },
             AddressMode::VxVy { x, y } => {
-                if self.registers[x as usize] != self.registers[y as usize] {
+                if self.registers[x] != self.registers[y] {
                     self.program_counter += 2;
                 }
             },
@@ -329,23 +329,23 @@ impl Emulator {
     fn ld(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
-                self.registers[x as usize] = byte;
+                self.registers[x] = byte;
             },
             AddressMode::VxVy { x, y } => {
-                self.registers[x as usize] = self.registers[y as usize];
+                self.registers[x] = self.registers[y];
             },
             AddressMode::IAddr { address } => {
                 self.idx = address;
             },
             AddressMode::VxDt { x } => {
-                self.registers[x as usize] = self.delay_timer;
+                self.registers[x] = self.delay_timer;
             },
             AddressMode::VxKey { x } => {
                 let mut found = false;
                 for i in 0..NUM_KEYS {
                     if self.keypad[i] > 0 {
                         found = true;
-                        self.registers[x as usize] = i as u8;
+                        self.registers[x] = i as u8;
                         break;
                     }
                 }
@@ -355,17 +355,17 @@ impl Emulator {
                 }
             },
             AddressMode::DtVx { x } => {
-                self.delay_timer = self.registers[x as usize];
+                self.delay_timer = self.registers[x];
             },
             AddressMode::StVx { x } => {
-                self.sound_timer = self.registers[x as usize];
+                self.sound_timer = self.registers[x];
             },
             AddressMode::FontVx { x } => {
-                let digit = self.registers[x as usize];
-                self.idx = memory::FONT_ADDR as u16 + (5 * digit as u16);
+                let digit = self.registers[x];
+                self.idx = memory::FONT_ADDR + (5 * digit as u16);
             },
             AddressMode::BcdVx { x } => {
-                let mut value = self.registers[x as usize];
+                let mut value = self.registers[x];
                 self.memory[self.idx + 2] = value % 10;
 
                 value /= 10;
@@ -405,20 +405,20 @@ impl Emulator {
     fn add(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
-                self.registers[x as usize] = self.registers[x as usize].overflowing_add(byte).0;
+                self.registers[x] = self.registers[x].overflowing_add(byte).0;
             },
             AddressMode::VxVy { x, y } => {
-                let sum = self.registers[x as usize] as u16 + self.registers[y as usize] as u16;
+                let sum = self.registers[x] as u16 + self.registers[y] as u16;
                 if sum > 0x00FF {
                     self.registers[0x0F] = 1;
                 } else {
                     self.registers[0x0F] = 0;
                 }
 
-                self.registers[x as usize] = (sum & 0x00FF) as u8;
+                self.registers[x] = (sum & 0x00FF) as u8;
             },
             AddressMode::IVx { x } => {
-                self.idx += self.registers[x as usize] as u16;
+                self.idx += self.registers[x] as u16;
             },
             _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
         }
@@ -439,7 +439,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn or(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            self.registers[x as usize] |= self.registers[y as usize];
+            self.registers[x] |= self.registers[y];
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -460,7 +460,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn and(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            self.registers[x as usize] &= self.registers[y as usize];
+            self.registers[x] &= self.registers[y];
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -481,7 +481,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn xor(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            self.registers[x as usize] ^= self.registers[y as usize];
+            self.registers[x] ^= self.registers[y];
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -503,13 +503,13 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn sub(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            if self.registers[x as usize] > self.registers[y as usize] {
+            if self.registers[x] > self.registers[y] {
                 self.registers[0x0F] = 1;
             } else {
                 self.registers[0x0F] = 0;
             }
 
-            self.registers[x as usize] = self.registers[x as usize].overflowing_sub(self.registers[y as usize]).0;
+            self.registers[x] = self.registers[x].overflowing_sub(self.registers[y]).0;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -531,8 +531,8 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn shr(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
-            self.registers[0x0F] = self.registers[x as usize] & 0x01;
-            self.registers[x as usize] >>= 1;
+            self.registers[0x0F] = self.registers[x] & 0x01;
+            self.registers[x] >>= 1;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -554,13 +554,13 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn subn(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            if self.registers[y as usize] > self.registers[x as usize] {
+            if self.registers[y] > self.registers[x] {
                 self.registers[0x0F] = 1;
             } else {
                 self.registers[0x0F] = 0;
             }
 
-            self.registers[x as usize] = self.registers[y as usize].overflowing_sub(self.registers[x as usize]).0;
+            self.registers[x] = self.registers[y].overflowing_sub(self.registers[x]).0;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -582,8 +582,8 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn shl(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
-            self.registers[0x0F] = (self.registers[x as usize] & 0x80) >> 7;
-            self.registers[x as usize] <<= 1;
+            self.registers[0x0F] = (self.registers[x] & 0x80) >> 7;
+            self.registers[x] <<= 1;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -605,7 +605,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn rnd(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxByte { x, byte } = opcode.address_mode {
-            self.registers[x as usize] = rand::random::<u8>() & byte;
+            self.registers[x] = rand::random::<u8>() & byte;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
         }
@@ -629,8 +629,8 @@ impl Emulator {
     fn drw(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVyN { x, y, nibble } = opcode.address_mode {
             let height = nibble;
-            let xp = self.registers[x as usize] % VIDEO_BUFFER_WIDTH as u8;
-            let yp = self.registers[y as usize] % VIDEO_BUFFER_HEIGHT as u8;
+            let xp = self.registers[x] % VIDEO_BUFFER_WIDTH as u8;
+            let yp = self.registers[y] % VIDEO_BUFFER_HEIGHT as u8;
 
             self.registers[0x0F] = 0;
             for r in 0..height {
@@ -640,11 +640,11 @@ impl Emulator {
                     let screen_idx = (yp as usize + r as usize) * VIDEO_BUFFER_WIDTH + (xp as usize + c);
 
                     if sprite_px > 0 {
-                        if self.video_buffer[screen_idx as usize] == 0xFF {
+                        if self.video_buffer[screen_idx] == 0xFF {
                             self.registers[0x0F] = 1;
                         }
 
-                        self.video_buffer[screen_idx as usize] ^= 0xFF;
+                        self.video_buffer[screen_idx] ^= 0xFF;
                     }
                 }
             }
@@ -668,7 +668,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn skp(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::Vx { x } = opcode.address_mode {
-            let key = self.registers[x as usize];
+            let key = self.registers[x];
             if self.keypad[key as usize] > 0 {
                 self.program_counter += 2;
             }
@@ -692,7 +692,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn sknp(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::Vx { x } = opcode.address_mode {
-            let key = self.registers[x as usize];
+            let key = self.registers[x];
             if self.keypad[key as usize] <= 0 {
                 self.program_counter += 2;
             }

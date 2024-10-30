@@ -10,13 +10,13 @@ macro_rules! instr {
 
 macro_rules! x {
     ($raw:expr) => {
-        ((($raw) & 0x0F00) >> 8) as u8
+        ((($raw) & 0x0F00) >> 8) as usize
     };
 }
 
 macro_rules! y {
     ($raw:expr) => {
-        ((($raw) & 0x00F0) >> 4) as u8
+        ((($raw) & 0x00F0) >> 4) as usize
     };
 }
 
@@ -101,21 +101,21 @@ pub enum AddressMode {
     None,
     OpCode{ opcode: u16 },
     Addr{ address: u16 },
-    VxByte{ x: u8, byte: u8 },
-    VxVy{ x: u8, y: u8 },
+    VxByte{ x: usize, byte: u8 },
+    VxVy{ x: usize, y: usize },
     IAddr{ address: u16 },
     V0Addr{ address: u16 },
-    VxVyN{ x: u8, y: u8, nibble: u8 },
-    Vx{ x: u8 },
-    VxDt{ x: u8 },
-    VxKey{ x: u8 },
-    DtVx{ x: u8 },
-    StVx{ x: u8 },
-    IVx{ x: u8 },
-    FontVx{ x: u8 },
-    BcdVx{ x: u8 },
-    AddrIVx{ x: u8 },
-    VxAddrI{ x: u8 }
+    VxVyN{ x: usize, y: usize, nibble: u8 },
+    Vx{ x: usize },
+    VxDt{ x: usize },
+    VxKey{ x: usize },
+    DtVx{ x: usize },
+    StVx{ x: usize },
+    IVx{ x: usize },
+    FontVx{ x: usize },
+    BcdVx{ x: usize },
+    AddrIVx{ x: usize },
+    VxAddrI{ x: usize }
 }
 
 impl Display for AddressMode {
