@@ -409,12 +409,8 @@ impl Emulator {
             },
             AddressMode::VxVy { x, y } => {
                 let sum = self.registers[x] as u16 + self.registers[y] as u16;
-                if sum > 0x00FF {
-                    self.registers[0x0F] = 1;
-                } else {
-                    self.registers[0x0F] = 0;
-                }
 
+                self.registers[0x0F] = (sum > 0x00FF) as u8;
                 self.registers[x] = (sum & 0x00FF) as u8;
             },
             AddressMode::IVx { x } => {
@@ -503,12 +499,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn sub(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            if self.registers[x] > self.registers[y] {
-                self.registers[0x0F] = 1;
-            } else {
-                self.registers[0x0F] = 0;
-            }
-
+            self.registers[0x0F] = (self.registers[x] > self.registers[y]) as u8;
             self.registers[x] = self.registers[x].overflowing_sub(self.registers[y]).0;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
@@ -554,12 +545,7 @@ impl Emulator {
     /// If an invalid address mode was provided
     fn subn(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
-            if self.registers[y] > self.registers[x] {
-                self.registers[0x0F] = 1;
-            } else {
-                self.registers[0x0F] = 0;
-            }
-
+            self.registers[0x0F] = (self.registers[y] > self.registers[x]) as u8;
             self.registers[x] = self.registers[y].overflowing_sub(self.registers[x]).0;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));
