@@ -25,6 +25,10 @@ impl CallStack {
     /// # Params
     ///
     /// - `addr` - The address to push onto the stack
+    /// 
+    /// # Errors
+    /// 
+    /// If the stack limit has been reached
     pub fn push(&mut self, addr: u16) -> Result<()> {
         if self.ptr == STACK_SIZE {
             return Err(Keet8Error::CallStackFull);
