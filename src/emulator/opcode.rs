@@ -49,7 +49,7 @@ macro_rules! nnn {
 
 #[repr(usize)]
 #[derive(Clone, Copy)]
-pub enum Instruction {
+pub(crate) enum Instruction {
     /// `raw` instruction (used for when an unknown raw opcode was encountered)
     RAW,
     /// `cls` instruction to clear the screen buffer
@@ -193,7 +193,7 @@ impl Display for AddressMode {
 // --- opcode definition ------------------------------------------------------
 
 #[derive(Clone, Copy)]
-pub struct OpCode {
+pub(crate) struct OpCode {
     /// The specified instruction
     pub instr: Instruction,
     /// The address mode to treat the instruction with

@@ -5,9 +5,9 @@ use std::ops::{Index, IndexMut};
 // --- constants --------------------------------------------------------------
 
 /// Represents the starting address of our actual ROM program
-pub const PROG_ADDR: u16 = 0x0200;
+pub(crate) const PROG_ADDR: u16 = 0x0200;
 /// Represents the starting address of the font data
-pub const FONT_ADDR: u16 = 0x0050;
+pub(crate) const FONT_ADDR: u16 = 0x0050;
 
 /// Represents the maximum available memory to Chip-8
 const MEMORY_SIZE: usize = 4 * 1024;
@@ -16,7 +16,7 @@ const FONTSET_SIZE: usize = 80;
 
 // --- memory definition ------------------------------------------------------
 
-pub struct Memory {
+pub(crate) struct Memory {
     /// This is the physical memory space of Chip-8
     space: [u8; MEMORY_SIZE],
 }

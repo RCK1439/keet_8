@@ -1,3 +1,12 @@
+//! This module, `keet_8`, contains the actual implementation of our
+//! application.
+//! 
+//! This is done purposely seperately from the main binary crate to have a form
+//! of abstraction from the main routine.
+//! 
+//! This module only exposes one function, that being the `run` function, which
+//! is to be called from `main`.
+
 mod emulator;
 mod error;
 mod prelude;
@@ -14,6 +23,16 @@ use raylib::prelude::*;
 /// # Params
 ///
 /// - `args` - The command-line arguments
+/// 
+/// # Examples
+/// 
+/// ```rust
+/// let args = std::env::args().collect();
+/// 
+/// if let Err(e) = keet_8::run(args) {
+///     eprintln!("{e}");
+/// }
+/// ```
 ///
 /// # Errors
 ///

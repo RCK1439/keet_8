@@ -1,3 +1,13 @@
+//! This module, `emulator`, is the actual implementation of the Chip-8
+//! emulator.
+//! 
+//! This includes things like the memory, call stack, opcode, instruction
+//! and address mode implementations aswell
+//! 
+//! This module only exposes one other submodule, being the `opcode` module for
+//! errors. This also exposes the `Emulator` struct for the application to
+//! interact with during runtime.
+
 mod memory;
 pub mod opcode;
 mod stack;
@@ -41,7 +51,7 @@ type Executor = fn(&mut Emulator, opcode: OpCode) -> Result<()>;
 
 // --- emulator definition ----------------------------------------------------
 
-pub struct Emulator {
+pub(crate) struct Emulator {
     /// These are the `V` registers
     registers: [u8; NUM_REGISTERS],
 

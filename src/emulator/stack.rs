@@ -7,7 +7,7 @@ const STACK_SIZE: usize = 32;
 
 // --- stack definition -------------------------------------------------------
 
-pub struct CallStack {
+pub(crate) struct CallStack {
     /// The underlying array holding the data of the stack
     data: [u16; STACK_SIZE],
     /// The stack pointer pointing to the next open slot in `data`
