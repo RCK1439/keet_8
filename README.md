@@ -5,7 +5,7 @@
 
 This is a basic implementation of a [Chip-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter built entirely in Rust. This was done for educational purposes to get started in development with emulators and building them.
 
-![image](documentation/test_opcode_keet_8.png)
+![image](res/test_opcode_keet_8.png)
 
 ## Getting Started
 
