@@ -2,10 +2,10 @@ mod error;
 mod prelude;
 mod emulator;
 
-use raylib::prelude::*;
-
 use emulator::Emulator;
 use prelude::*;
+
+use raylib::prelude::*;
 
 // --- keet-8 interface -------------------------------------------------------
 
@@ -28,6 +28,14 @@ pub fn run(args: Vec<String>) -> Result<()> {
     let mut app = Application::new(&args[1])?;
     app.run()
 }
+
+// --- constants --------------------------------------------------------------
+
+const TITLE: &'static str = "keet-8";
+const VERSION: &'static str = "v0.1.0";
+
+const WINDOW_WIDTH: i32 = 1024;
+const WINDOW_HEIGHT: i32 = 512;
 
 // --- application definition -------------------------------------------------
 
@@ -52,9 +60,10 @@ impl Application {
     /// 
     /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
+        let window_title = format!("{TITLE} - {VERSION}");
         let (mut rl, thread) = raylib::init()
-            .size(1024, 512)
-            .title("keet-8")
+            .size(WINDOW_WIDTH, WINDOW_HEIGHT)
+            .title(&window_title)
             .vsync()
             .msaa_4x()
             .build();
@@ -139,12 +148,6 @@ impl Application {
             KeyboardKey::KEY_F
         ];
 
-        for k in 0..NUM_KEYS {
-            if self.rl.is_key_down(KEYBOARD_KEY[k]) {
-                self.emulator.set_key(k, 1);
-            } else {
-                self.emulator.set_key(k, 0);
-            }
-        }
+        (0..NUM_KEYS).for_each(|k| self.emulator.set_key(k, self.rl.is_key_down(KEYBOARD_KEY[k]) as u8)); 
     }
 }

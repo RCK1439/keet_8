@@ -19,7 +19,7 @@ const VIDEO_BUFFER_WIDTH: usize = 64;
 const VIDEO_BUFFER_HEIGHT: usize = 32;
 
 const PIXEL_COLOR: Color = Color { r: 0, g: 228, b: 48, a: 255 };
-const SCALE: i32 = 1024 / 64;
+const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
 
 // --- type definitions -------------------------------------------------------
 
