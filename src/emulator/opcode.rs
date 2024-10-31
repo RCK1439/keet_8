@@ -68,29 +68,13 @@ pub enum Instruction {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Instruction::RAW => write!(f, "raw"),
-            Instruction::CLS => write!(f, "cls"),
-            Instruction::RET => write!(f, "ret"),
-            Instruction::SYS => write!(f, "sys"),
-            Instruction::JP => write!(f, "jp"),
-            Instruction::CALL => write!(f, "call"),
-            Instruction::SE => write!(f, "se"),
-            Instruction::SNE => write!(f, "sne"),
-            Instruction::LD => write!(f, "ld"),
-            Instruction::ADD => write!(f, "add"),
-            Instruction::OR => write!(f, "or"),
-            Instruction::AND => write!(f, "and"),
-            Instruction::XOR => write!(f, "xor"),
-            Instruction::SUB => write!(f, "sub"),
-            Instruction::SHR => write!(f, "shr"),
-            Instruction::SUBN => write!(f, "subn"),
-            Instruction::SHL => write!(f, "shl"),
-            Instruction::RND => write!(f, "rnd"),
-            Instruction::DRW => write!(f, "drw"),
-            Instruction::SKP => write!(f, "skp"),
-            Instruction::SKNP => write!(f, "sknp"),
-        }
+        const INSTRUCTION_STRINGS: [&'static str; 21] = [
+            "raw", "cls", "ret", "sys", "jp", "call", "se",
+            "sne", "ld", "add", "or", "and", "xor", "sub",
+            "shr", "subn", "shl", "rnd", "drw", "skp", "sknp"
+        ];
+
+        write!(f, "{}", INSTRUCTION_STRINGS[*self as usize])
     }
 }
 
