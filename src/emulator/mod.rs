@@ -3,7 +3,7 @@ mod memory;
 mod stack;
 
 use memory::Memory;
-use stack::Stack;
+use stack::CallStack;
 use opcode::{ AddressMode, OpCode };
 
 use crate::prelude::*;
@@ -36,7 +36,7 @@ pub struct Emulator {
     delay_timer: u8,
     sound_timer: u8,
 
-    stack: Stack,
+    stack: CallStack,
     memory: Memory,
     video_buffer: [u8; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
     keypad: [u8; NUM_KEYS],
@@ -65,7 +65,7 @@ impl Emulator {
             delay_timer: 0,
             sound_timer: 0,
 
-            stack: Stack::new(),
+            stack: CallStack::new(),
             memory: Memory::new(rom_file)?,
             video_buffer: [0; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
             keypad: [0; NUM_KEYS],
@@ -185,13 +185,13 @@ impl Emulator {
     /// 
     /// # Errors
     /// 
-    /// If the stack was empty when attempting to pop the previous address off
-    /// of
+    /// If the call stack was empty when attempting to pop the previous
+    /// address off of
     fn ret(&mut self, #[allow(unused)] opcode: OpCode) -> Result<()> {
         if let Some(addr) = self.stack.pop() {
             self.program_counter = addr;
         } else {
-            return Err(Keet8Error::StackEmpty);
+            return Err(Keet8Error::CallStackEmpty);
         }
 
         Ok(())
@@ -247,10 +247,11 @@ impl Emulator {
     /// 
     /// # Errors
     /// 
-    /// If an invalid address mode was provided
+    /// - If an invalid address mode was provided
+    /// - If the call stack limit has been reached
     fn call(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::Addr { address } = opcode.address_mode {
-            self.stack.push(self.program_counter);
+            self.stack.push(self.program_counter)?;
             self.program_counter = address;
         } else {
             return Err(Keet8Error::InvalidAddressMode(opcode.address_mode));

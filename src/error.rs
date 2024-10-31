@@ -8,7 +8,8 @@ pub enum Keet8Error {
     NoROMFile,
     FailedToLoadROM(String),
 
-    StackEmpty,
+    CallStackEmpty,
+    CallStackFull,
     InvalidAddressMode(AddressMode),
 }
 
@@ -17,7 +18,8 @@ impl Display for Keet8Error {
         match self {
             Self::NoROMFile => write!(f, "No ROM file specified"),
             Self::FailedToLoadROM(rom) => write!(f, "Failed to load ROM: {rom}"),
-            Self::StackEmpty => write!(f, "Stack empty"),
+            Self::CallStackEmpty => write!(f, "Call stack is empty"),
+            Self::CallStackFull => write!(f, "Call stack limit reached"),
             Self::InvalidAddressMode(addr_mode) => write!(f, "Invalid address mode: {addr_mode}"),
         }
     }
