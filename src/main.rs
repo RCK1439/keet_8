@@ -3,6 +3,9 @@ use std::process::ExitCode;
 // --- main routine -----------------------------------------------------------
 
 /// The main entry point of the program
+/// 
+/// To run the program, one must provide command-line arguments:
+/// `cargo run path/to/rom`
 fn main() -> ExitCode {
     let args = std::env::args().collect();
 

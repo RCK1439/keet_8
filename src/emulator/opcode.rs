@@ -2,36 +2,43 @@ use std::fmt::Display;
 
 // --- macros -----------------------------------------------------------------
 
+/// Retrieves the first nibble of the raw opcode
 macro_rules! instr {
     ($raw:expr) => {
         (($raw) & 0xF000)
     };
 }
 
+/// Retrieves the value of `VX` from the raw opcode
 macro_rules! x {
     ($raw:expr) => {
         ((($raw) & 0x0F00) >> 8) as usize
     };
 }
 
+/// Retrieves the value of `VY` from the raw opcode
 macro_rules! y {
     ($raw:expr) => {
         ((($raw) & 0x00F0) >> 4) as usize
     };
 }
 
+/// Retrieves the nibble (`N`) from the raw opcode as a byte
 macro_rules! n {
     ($raw:expr) => {
         (($raw) & 0x000F) as u8
     };
 }
 
+/// Retrieves the byte (`KK`) from the raw opcode as a byte
 macro_rules! kk {
     ($raw:expr) => {
         (($raw) & 0x00FF) as u8
     };
 }
 
+/// Retrieves the address (`NNN`) from the raw opcode as a 16-bit unsigned
+/// integer
 macro_rules! nnn {
     ($raw:expr) => {
         (($raw) & 0x0FFF) as u16
@@ -43,31 +50,58 @@ macro_rules! nnn {
 #[repr(usize)]
 #[derive(Clone, Copy)]
 pub enum Instruction {
+    /// `raw` instruction (used for when an unknown raw opcode was encountered)
     RAW,
+    /// `cls` instruction to clear the screen buffer
     CLS,
+    /// `ret` intruction for returning from functions
     RET,
+    /// `sys` instruction (unused)
     #[allow(unused)]
     SYS,
+    /// `jp` instruction for jumping to different memory addresses
     JP,
+    /// `call` instruction for calling functions
     CALL,
+    /// `se` instruction for skipping the next instruction if two values are
+    /// equal
     SE,
+    /// `sne` instruction for skipping the next instruction if two value are
+    /// not equal
     SNE,
+    /// `ld` instruction for loading a value into a register
     LD,
+    /// `add` instruction for performing a mathematical add operation
     ADD,
+    /// `or` instruction for performing a bitwise "or" operation
     OR,
+    /// `and` instruction for performing a bitwise "and" operation
     AND,
+    /// `xor` instruction for performing a bitwise "xor" operation
     XOR,
+    /// `sub` instruction for performing a mathematical subtract operation
     SUB,
+    /// `shr` instruction for performing a bitwise shift to the right operation
     SHR,
+    /// `subn` instruction for performing a negative mathematical subtract
+    /// operation
     SUBN,
+    /// `shl` instruction for performing a bitwise shift to the left operation
     SHL,
+    /// `rnd` instruction for generating a random unsigned 8-bit integer 
     RND,
+    /// `drw` instruction for drawing to the screen buffer
     DRW,
+    /// `skp` instruction for skipping the next instruction if a specific key
+    /// is pressed
     SKP,
+    /// `sknp` instruction fro skipping the next instruction if a specific key
+    /// is not pressed
     SKNP,
 }
 
 impl Display for Instruction {
+    /// Writes the instruction to the output stream
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         const INSTRUCTION_STRINGS: [&'static str; 21] = [
             "raw", "cls", "ret", "sys", "jp", "call", "se", "sne", "ld", "add", "or", "and", "xor",
@@ -82,27 +116,56 @@ impl Display for Instruction {
 
 #[derive(Clone, Copy)]
 pub enum AddressMode {
+    /// Used for instructions that require no address mode
     None,
+    /// Used for the `raw` instruction
     OpCode { opcode: u16 },
+    /// Used for instructions requiring a memory address
     Addr { address: u16 },
+    /// Used for instructions operating on a register with a byte
     VxByte { x: usize, byte: u8 },
+    /// Used for instructions operating on two registers
     VxVy { x: usize, y: usize },
+    /// Used for instruction requiring a memory address aswell as the index
+    /// register
     IAddr { address: u16 },
+    /// Used for instructions using the `V0` register and a memory address
     V0Addr { address: u16 },
+    /// Used for the `drw` instruction
     VxVyN { x: usize, y: usize, nibble: u8 },
+    /// Used for instructions operating on a single register
     Vx { x: usize },
+    /// Used for instructions operating on a single register as the destination
+    /// and the delay timer
     VxDt { x: usize },
+    /// Used for instructions operating on a single register and making use of
+    /// a key
     VxKey { x: usize },
+    /// Used for instructions operating on the delay timer as the destination
+    /// and a single register
     DtVx { x: usize },
+    /// Used for instructions operating on the sound timer as the destination
+    /// and a single register
     StVx { x: usize },
+    /// Used for instructions operating on the index register as the
+    /// destination and a single register
     IVx { x: usize },
+    /// Used for instructions operating on the font and a single register
     FontVx { x: usize },
+    /// Used for instructions operating on a single register with a weird
+    /// operation
     BcdVx { x: usize },
+    /// Used for instructions operating on a memory address and the index
+    /// register as the destination and a single other register
     AddrIVx { x: usize },
+    /// Used for instructions operating on a single register as the destination
+    /// and a memory address with the index register
     VxAddrI { x: usize },
 }
 
 impl Display for AddressMode {
+    /// Writes the address mode as it will appear in assembly to the output
+    /// stream
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AddressMode::None => write!(f, ""),
@@ -131,7 +194,9 @@ impl Display for AddressMode {
 
 #[derive(Clone, Copy)]
 pub struct OpCode {
+    /// The specified instruction
     pub instr: Instruction,
+    /// The address mode to treat the instruction with
     pub address_mode: AddressMode,
 }
 
@@ -364,6 +429,8 @@ impl From<u16> for OpCode {
 }
 
 impl Display for OpCode {
+    /// Writes the opcode out as it will appear in assembly to the
+    /// output stream
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.instr, self.address_mode)
     }

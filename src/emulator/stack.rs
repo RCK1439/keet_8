@@ -2,17 +2,23 @@ use crate::prelude::*;
 
 // --- constants --------------------------------------------------------------
 
+/// This represents the size limit of the call stack
 const STACK_SIZE: usize = 32;
 
 // --- stack definition -------------------------------------------------------
 
 pub struct CallStack {
+    /// The underlying array holding the data of the stack
     data: [u16; STACK_SIZE],
+    /// The stack pointer pointing to the next open slot in `data`
     ptr: usize,
 }
 
 impl CallStack {
     /// Creates a new instance of the address stack
+    /// 
+    /// This will initialize the buffer and the stack pointer to `0`
+    /// indicating that the stack is empty
     pub fn new() -> Self {
         Self {
             data: [0; STACK_SIZE],

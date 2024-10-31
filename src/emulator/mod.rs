@@ -12,18 +12,27 @@ use raylib::prelude::*;
 
 // --- constants --------------------------------------------------------------
 
+/// Represents the number of available registers to Chip-8
 const NUM_REGISTERS: usize = 16;
+/// Represents the number keys on the keypad available to Chip-8
 const NUM_KEYS: usize = 16;
 
+/// Represents the width of the screen buffer
 const VIDEO_BUFFER_WIDTH: usize = 64;
+/// Represents the height of the screen buffer
 const VIDEO_BUFFER_HEIGHT: usize = 32;
 
+/// Represents the color of a single pixel on the screen buffer
+/// 
+/// This is the `GREEN` macro used by raylib in C (it is different for some
+/// reason here in Rust)
 const PIXEL_COLOR: Color = Color {
     r: 0,
     g: 228,
     b: 48,
     a: 255,
 };
+/// Represents the scaling factor at which pixels are drawn to the window
 const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
 
 // --- type definitions -------------------------------------------------------
@@ -33,19 +42,30 @@ type Executor = fn(&mut Emulator, opcode: OpCode) -> Result<()>;
 // --- emulator definition ----------------------------------------------------
 
 pub struct Emulator {
+    /// These are the `V` registers
     registers: [u8; NUM_REGISTERS],
 
+    /// This is the index register
     idx: u16,
+    /// This is the program counter
     program_counter: u16,
 
+    /// This is the delay timer
     delay_timer: u8,
+    /// This is the sound timer
     sound_timer: u8,
 
+    /// This is the call stack
     stack: CallStack,
+    /// This is the available memory to Chip-8
     memory: Memory,
+    /// This is the screen buffer
     video_buffer: [u8; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
+    /// This is a small array containing the state of the keys
     keypad: [u8; NUM_KEYS],
 
+    /// These are all the executor functions available to our Chip-8
+    /// implementation
     instructions: [Executor; 21],
 }
 

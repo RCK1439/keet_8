@@ -31,21 +31,30 @@ pub fn run(args: Vec<String>) -> Result<()> {
 
 // --- constants --------------------------------------------------------------
 
+/// Represents the title of the emulator
 const TITLE: &'static str = "keet-8";
+/// Represents the current version of the emulator
 const VERSION: &'static str = "v0.1.0";
 
+/// Represents the width of the window
 const WINDOW_WIDTH: i32 = 1024;
+/// Represents the height of the window
 const WINDOW_HEIGHT: i32 = 512;
 
 // --- application definition -------------------------------------------------
 
 struct Application {
+    /// The handle to the raylib context
     rl: RaylibHandle,
+    /// The thread on which raylib is running on
     thread: RaylibThread,
 
+    /// Flag indicating whether the application is still running
     is_running: bool,
+    /// Flag indicating whether debug information is to be drawn on the window
     debug: bool,
 
+    /// The actual Chip-8 emulator
     emulator: Emulator,
 }
 
