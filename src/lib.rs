@@ -1,6 +1,6 @@
+mod emulator;
 mod error;
 mod prelude;
-mod emulator;
 
 use emulator::Emulator;
 use prelude::*;
@@ -10,13 +10,13 @@ use raylib::prelude::*;
 // --- keet-8 interface -------------------------------------------------------
 
 /// Runs the application
-/// 
+///
 /// # Params
-/// 
+///
 /// - `args` - The command-line arguments
-/// 
+///
 /// # Errors
-/// 
+///
 /// - If no ROM file was provided
 /// - If there was an error when loading the ROM
 /// - If there was an error during runtime
@@ -46,18 +46,18 @@ struct Application {
     is_running: bool,
     debug: bool,
 
-    emulator: Emulator
+    emulator: Emulator,
 }
 
 impl Application {
     /// Creates an instance of the application and initializes raylib
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `rom_file` - The filepath to the ROM file
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let window_title = format!("{TITLE} - {VERSION}");
@@ -77,28 +77,28 @@ impl Application {
             is_running: true,
             debug: false,
 
-            emulator: Emulator::new(rom_file)?
+            emulator: Emulator::new(rom_file)?,
         })
     }
 
     /// Runs the application
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an error occured during runtime of the emulator
     pub fn run(&mut self) -> Result<()> {
         while self.is_running {
             self.on_update()?;
             self.on_render();
         }
-        
+
         Ok(())
     }
 
     /// Called once per frame to update the logic of the application
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an error has occured during runtime of the emulator
     fn on_update(&mut self) -> Result<()> {
         self.process_input();
@@ -111,7 +111,7 @@ impl Application {
         if self.rl.is_key_pressed(KeyboardKey::KEY_F3) {
             self.debug = !self.debug;
         }
-        
+
         Ok(())
     }
 
@@ -145,9 +145,12 @@ impl Application {
             KeyboardKey::KEY_C,
             KeyboardKey::KEY_D,
             KeyboardKey::KEY_E,
-            KeyboardKey::KEY_F
+            KeyboardKey::KEY_F,
         ];
 
-        (0..NUM_KEYS).for_each(|k| self.emulator.set_key(k, self.rl.is_key_down(KEYBOARD_KEY[k]) as u8)); 
+        (0..NUM_KEYS).for_each(|k| {
+            self.emulator
+                .set_key(k, self.rl.is_key_down(KEYBOARD_KEY[k]) as u8)
+        });
     }
 }

@@ -1,10 +1,10 @@
-pub mod opcode;
 mod memory;
+pub mod opcode;
 mod stack;
 
 use memory::Memory;
+use opcode::{AddressMode, OpCode};
 use stack::CallStack;
-use opcode::{ AddressMode, OpCode };
 
 use crate::prelude::*;
 
@@ -18,7 +18,12 @@ const NUM_KEYS: usize = 16;
 const VIDEO_BUFFER_WIDTH: usize = 64;
 const VIDEO_BUFFER_HEIGHT: usize = 32;
 
-const PIXEL_COLOR: Color = Color { r: 0, g: 228, b: 48, a: 255 };
+const PIXEL_COLOR: Color = Color {
+    r: 0,
+    g: 228,
+    b: 48,
+    a: 255,
+};
 const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
 
 // --- type definitions -------------------------------------------------------
@@ -41,19 +46,19 @@ pub struct Emulator {
     video_buffer: [u8; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
     keypad: [u8; NUM_KEYS],
 
-    instructions: [Executor; 21]
+    instructions: [Executor; 21],
 }
 
 impl Emulator {
     /// Creates a new instance of the Chip-8 emulator and initializes all the
     /// systems required for emulation.
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `rom_file` - The filepath to the ROM file
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If there was an error when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         Ok(Self {
@@ -91,18 +96,19 @@ impl Emulator {
                 Self::rnd,
                 Self::drw,
                 Self::skp,
-                Self::sknp
-            ]
+                Self::sknp,
+            ],
         })
     }
 
     /// Emulates one CPU cycle by stepping one single instruction
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was encountered
     pub fn step(&mut self) -> Result<()> {
-        let raw = ((self.memory[self.program_counter] as u16) << 8) | (self.memory[self.program_counter + 1] as u16);
+        let raw = ((self.memory[self.program_counter] as u16) << 8)
+            | (self.memory[self.program_counter + 1] as u16);
         self.program_counter += 2;
 
         let opcode = OpCode::from(raw);
@@ -120,9 +126,9 @@ impl Emulator {
     }
 
     /// Assigns a value to the key
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `key` - The key to assign the value to
     /// - `val` - The value to assign to the key
     pub fn set_key(&mut self, key: usize, val: u8) {
@@ -130,28 +136,34 @@ impl Emulator {
     }
 
     /// Draws the video buffer data to the window
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `d` - The draw handle provided by raylib
     pub fn draw_buffer(&mut self, d: &mut RaylibDrawHandle) {
         for y in 0..VIDEO_BUFFER_HEIGHT {
             for x in 0..VIDEO_BUFFER_WIDTH {
                 if self.video_buffer[x + y * VIDEO_BUFFER_WIDTH] > 0 {
-                    d.draw_rectangle(x as i32 * SCALE, y as i32 * SCALE, SCALE, SCALE, PIXEL_COLOR);
+                    d.draw_rectangle(
+                        x as i32 * SCALE,
+                        y as i32 * SCALE,
+                        SCALE,
+                        SCALE,
+                        PIXEL_COLOR,
+                    );
                 }
             }
         }
     }
 
     /// Executes the `RAW` instruction.
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function doesn't error, but has to return a result due to the
     /// definition of [Executor]
     fn raw(&mut self, #[allow(unused)] opcode: OpCode) -> Result<()> {
@@ -159,15 +171,15 @@ impl Emulator {
     }
 
     /// Executes the `CLS` instruction
-    /// 
+    ///
     /// This clears the video buffer, essentially clearing the screen
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function doesn't error, but has to return a result due to the
     /// definition of [Executor]
     fn cls(&mut self, #[allow(unused)] opcode: OpCode) -> Result<()> {
@@ -176,15 +188,15 @@ impl Emulator {
     }
 
     /// Executes the `RET` instruction
-    /// 
+    ///
     /// This returns from the current function the program counter is in
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the call stack was empty when attempting to pop the previous
     /// address off of
     fn ret(&mut self, #[allow(unused)] opcode: OpCode) -> Result<()> {
@@ -198,13 +210,13 @@ impl Emulator {
     }
 
     /// Executes the `SYS` instruction
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// This function doesn't error, but has to return a result due to the
     /// definition of `Executor`
     fn sys(&mut self, #[allow(unused)] opcode: OpCode) -> Result<()> {
@@ -212,41 +224,41 @@ impl Emulator {
     }
 
     /// Executes the `JP` instruction
-    /// 
+    ///
     /// This sets the program counter to an address to jump to
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn jp(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::Addr { address } => {
                 self.program_counter = address;
-            },
+            }
             AddressMode::V0Addr { address } => {
                 self.program_counter = self.registers[0x00] as u16 + address
-            },
-            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
+            }
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode)),
         }
 
         Ok(())
     }
 
     /// Executes the `CALL` instruction
-    /// 
+    ///
     /// This does a function call by means of pushing the current value of the
     /// program counter and then jumping to the address of the called function
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If an invalid address mode was provided
     /// - If the call stack limit has been reached
     fn call(&mut self, opcode: OpCode) -> Result<()> {
@@ -261,15 +273,15 @@ impl Emulator {
     }
 
     /// Executes the `SE` instruction
-    /// 
+    ///
     /// Skips the instruction if two values are equal
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn se(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
@@ -277,28 +289,28 @@ impl Emulator {
                 if self.registers[x] == byte {
                     self.program_counter += 2;
                 }
-            },
+            }
             AddressMode::VxVy { x, y } => {
                 if self.registers[x] == self.registers[y] {
                     self.program_counter += 2;
                 }
-            },
-            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
+            }
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode)),
         }
-        
+
         Ok(())
     }
 
     /// Executes the `SNE` instruction
-    /// 
+    ///
     /// Skips the instruction if two values are not equal
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn sne(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
@@ -306,43 +318,43 @@ impl Emulator {
                 if self.registers[x] != byte {
                     self.program_counter += 2;
                 }
-            },
+            }
             AddressMode::VxVy { x, y } => {
                 if self.registers[x] != self.registers[y] {
                     self.program_counter += 2;
                 }
-            },
-            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
+            }
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode)),
         }
 
         Ok(())
     }
 
     /// Executes the `LD` instruction
-    /// 
+    ///
     /// Loads a value into the specified register
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn ld(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
                 self.registers[x] = byte;
-            },
+            }
             AddressMode::VxVy { x, y } => {
                 self.registers[x] = self.registers[y];
-            },
+            }
             AddressMode::IAddr { address } => {
                 self.idx = address;
-            },
+            }
             AddressMode::VxDt { x } => {
                 self.registers[x] = self.delay_timer;
-            },
+            }
             AddressMode::VxKey { x } => {
                 let mut found = false;
                 for i in 0..NUM_KEYS {
@@ -356,17 +368,17 @@ impl Emulator {
                 if !found {
                     self.program_counter -= 2;
                 }
-            },
+            }
             AddressMode::DtVx { x } => {
                 self.delay_timer = self.registers[x];
-            },
+            }
             AddressMode::StVx { x } => {
                 self.sound_timer = self.registers[x];
-            },
+            }
             AddressMode::FontVx { x } => {
                 let digit = self.registers[x];
                 self.idx = memory::FONT_ADDR + (5 * digit as u16);
-            },
+            }
             AddressMode::BcdVx { x } => {
                 let mut value = self.registers[x];
                 self.memory[self.idx + 2] = value % 10;
@@ -376,61 +388,61 @@ impl Emulator {
 
                 value /= 10;
                 self.memory[self.idx + 0] = value % 10;
-            },
+            }
             AddressMode::AddrIVx { x } => {
                 (0..=x).for_each(|i| self.memory[self.idx + i as u16] = self.registers[i]);
-            },
+            }
             AddressMode::VxAddrI { x } => {
                 (0..=x).for_each(|i| self.registers[i] = self.memory[self.idx + i as u16]);
-            },
-            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
+            }
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode)),
         }
 
         Ok(())
     }
 
     /// Executes the `ADD` instruction
-    /// 
+    ///
     /// Adds a value to the specified register and sets the overflow flag
     /// if an overflow has occured
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn add(&mut self, opcode: OpCode) -> Result<()> {
         match opcode.address_mode {
             AddressMode::VxByte { x, byte } => {
                 self.registers[x] = self.registers[x].overflowing_add(byte).0;
-            },
+            }
             AddressMode::VxVy { x, y } => {
                 let sum = self.registers[x] as u16 + self.registers[y] as u16;
 
                 self.registers[0x0F] = (sum > 0x00FF) as u8;
                 self.registers[x] = (sum & 0x00FF) as u8;
-            },
+            }
             AddressMode::IVx { x } => {
                 self.idx += self.registers[x] as u16;
-            },
-            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode))
+            }
+            _ => return Err(Keet8Error::InvalidAddressMode(opcode.address_mode)),
         }
-        
+
         Ok(())
     }
 
     /// Executes the `OR` instruction
-    /// 
+    ///
     /// Performs a bitwise "or" on with the specified registers
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn or(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
@@ -443,15 +455,15 @@ impl Emulator {
     }
 
     /// Executes the `AND` instruction
-    /// 
+    ///
     /// Performs a bitwise "and" on with the specified registers
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn and(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
@@ -464,15 +476,15 @@ impl Emulator {
     }
 
     /// Executes the `XOR` instruction
-    /// 
+    ///
     /// Performs a bitwise "xor" on with the specified registers
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn xor(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
@@ -485,16 +497,16 @@ impl Emulator {
     }
 
     /// Executes the `SUB` instruction
-    /// 
+    ///
     /// Subtracts the specified registers from one another and sets the
     /// overflow flag if an overflow has occured
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn sub(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
@@ -508,16 +520,16 @@ impl Emulator {
     }
 
     /// Executes the `SHR` instruction
-    /// 
+    ///
     /// Shifts the value register to the right by one and sets the overflow
     /// flag if an overflow has occured
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn shr(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
@@ -531,16 +543,16 @@ impl Emulator {
     }
 
     /// Executes the `SUBN` instruction
-    /// 
+    ///
     /// Sets the `VX` to the value of `VY` minus `VX` and sets the overflow
     /// flag if an overflow has occured
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn subn(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y } = opcode.address_mode {
@@ -554,16 +566,16 @@ impl Emulator {
     }
 
     /// Executes the `SHL` instruction
-    /// 
+    ///
     /// Shifts the value register to the left by one and sets the overflow
     /// flag if an overflow has occured
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn shl(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVy { x, y: _ } = opcode.address_mode {
@@ -577,16 +589,16 @@ impl Emulator {
     }
 
     /// Executes the `RND` instruction
-    /// 
+    ///
     /// Generates a random value between 0 and 255 and masks it by the
     /// specified byte value
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn rnd(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxByte { x, byte } = opcode.address_mode {
@@ -599,17 +611,17 @@ impl Emulator {
     }
 
     /// Executes the `DRW` instruction
-    /// 
+    ///
     /// Display `N`-byte sprite starting at memory location `I` at (`VX`, `VY`)
     /// Each set bit of xored with what's already drawn. `VF` is set to `1` if
     /// a collision occurs. `0` otherwise
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn drw(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::VxVyN { x, y, nibble } = opcode.address_mode {
@@ -622,7 +634,8 @@ impl Emulator {
                 let sprite = self.memory[self.idx + r as u16];
                 for c in 0..8 {
                     let sprite_px = sprite & (0x80 >> c);
-                    let screen_idx = (yp as usize + r as usize) * VIDEO_BUFFER_WIDTH + (xp as usize + c);
+                    let screen_idx =
+                        (yp as usize + r as usize) * VIDEO_BUFFER_WIDTH + (xp as usize + c);
 
                     if sprite_px > 0 {
                         if self.video_buffer[screen_idx] == 0xFF {
@@ -641,15 +654,15 @@ impl Emulator {
     }
 
     /// Executes the `SKP` instruction
-    /// 
+    ///
     /// Skips the next instruction if the specified key is pressed
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn skp(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::Vx { x } = opcode.address_mode {
@@ -665,15 +678,15 @@ impl Emulator {
     }
 
     /// Executes the `SKNP` instruction
-    /// 
+    ///
     /// Skips the next instruction of the specified key is not pressed
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `opcode` - The opcode containing the execution context
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If an invalid address mode was provided
     fn sknp(&mut self, opcode: OpCode) -> Result<()> {
         if let AddressMode::Vx { x } = opcode.address_mode {

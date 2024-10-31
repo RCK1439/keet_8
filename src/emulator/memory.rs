@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-use std::ops::{ Index, IndexMut };
+use std::ops::{Index, IndexMut};
 
 // --- constants --------------------------------------------------------------
 
@@ -13,18 +13,18 @@ const FONTSET_SIZE: usize = 80;
 // --- memory definition ------------------------------------------------------
 
 pub struct Memory {
-    space: [u8; MEMORY_SIZE]
+    space: [u8; MEMORY_SIZE],
 }
 
 impl Memory {
     /// Creates and initializes the memory for the emulator
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `rom_file` - The filepath to the ROM to load into memory
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If there was an error when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let bytes = std::fs::read(rom_file)
@@ -32,7 +32,7 @@ impl Memory {
 
         let mut space = [0; MEMORY_SIZE];
 
-        (0..bytes.len()).for_each(|i| space[PROG_ADDR as usize + i] = bytes[i]); 
+        (0..bytes.len()).for_each(|i| space[PROG_ADDR as usize + i] = bytes[i]);
         load_font(&mut space);
 
         Ok(Self { space })
@@ -43,9 +43,9 @@ impl Index<u16> for Memory {
     type Output = u8;
 
     /// Gets the value at the specified 16-bit address
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `addr` - The memory address to read
     fn index(&self, addr: u16) -> &Self::Output {
         let idx = (addr & 0x0FFF) as usize;
@@ -55,9 +55,9 @@ impl Index<u16> for Memory {
 
 impl IndexMut<u16> for Memory {
     /// Gets the value at the specified 16-bit address (mutably)
-    /// 
+    ///
     /// # Params
-    /// 
+    ///
     /// - `addr` - The memory address to read
     fn index_mut(&mut self, addr: u16) -> &mut Self::Output {
         let idx = (addr & 0x0FFF) as usize;
@@ -68,10 +68,10 @@ impl IndexMut<u16> for Memory {
 // --- utility functions ------------------------------------------------------
 
 /// Loads the font data of Chip-8 into the given buffer
-/// 
+///
 /// # Params
-/// 
-/// - `buffer` - The buffer to load the font into 
+///
+/// - `buffer` - The buffer to load the font into
 fn load_font(buffer: &mut [u8; MEMORY_SIZE]) {
     const FONTSET: [u8; FONTSET_SIZE] = [
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -89,7 +89,7 @@ fn load_font(buffer: &mut [u8; MEMORY_SIZE]) {
         0xF0, 0x80, 0x80, 0x80, 0xF0, // C
         0xE0, 0x90, 0x90, 0x90, 0xE0, // D
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-        0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+        0xF0, 0x80, 0xF0, 0x80, 0x80, // F
     ];
 
     (0..FONTSET_SIZE).for_each(|i| buffer[FONT_ADDR as usize + i] = FONTSET[i]);
