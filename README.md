@@ -1,7 +1,7 @@
 # Keet-8: A Chip-8 emulator
 
 ![Rust](https://img.shields.io/badge/Rust-red?style=for-the-badge&logo=Rust&logoColor=white&labelColor=red&color=gray)
-![Raylib](https://img.shields.io/badge/Raylib-white?style=for-the-badge&logo=Raylib&logoColor=black&labelColor=white&color=gray)
+![Raylib](https://img.shields.io/badge/raylib-white?style=for-the-badge&logo=raylib&logoColor=black&labelColor=white&color=gray&link=https%3A%2F%2Fwww.raylib.com%2F)
 
 This is a basic implementation of a [Chip-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter built entirely in Rust. This was done for educational purposes to get started in development with emulators and building them.
 
