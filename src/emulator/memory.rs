@@ -32,12 +32,9 @@ impl Memory {
     ///
     /// - If there was an error when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
-        let bytes = std::fs::read(rom_file)
-            .map_err(|_| Keet8Error::FailedToLoadROM(rom_file.to_string()))?;
-
         let mut space = [0; MEMORY_SIZE];
 
-        (0..bytes.len()).for_each(|i| space[PROG_ADDR as usize + i] = bytes[i]);
+        load_rom(rom_file, &mut space)?;
         load_font(&mut space);
 
         Ok(Self { space })
@@ -71,6 +68,25 @@ impl IndexMut<u16> for Memory {
 }
 
 // --- utility functions ------------------------------------------------------
+
+/// Loads the contents of the provided ROM file into `buffer` starting at the
+/// `PROG_ADDR`
+/// 
+/// # Params
+/// 
+/// - `filepath` - The path to the ROM file
+/// - `buffer` - The memory buffer to load the ROM into
+/// 
+/// # Errors
+/// 
+/// If an error occured whilst attempting to read from the ROM file
+fn load_rom(filepath: &str, buffer: &mut [u8; MEMORY_SIZE]) -> Result<()> {
+    let bytes = std::fs::read(filepath)
+        .map_err(|_| Keet8Error::FailedToLoadROM(filepath.to_string()))?;
+
+    (0..bytes.len()).for_each(|i| buffer[PROG_ADDR as usize + i] = bytes[i]);
+    Ok(())
+}
 
 /// Loads the font data of Chip-8 into the given buffer
 ///
