@@ -20,6 +20,33 @@ use crate::prelude::*;
 
 use raylib::prelude::*;
 
+// --- macros -----------------------------------------------------------------
+
+/// Creates a `Color` from a single byte, where the bits represent the strength
+/// in the individual colors.
+/// 
+/// # Bit Representation of color
+/// 
+/// - The byte is split up as follows `00|00|00|00`
+/// - The red bits are represented as `0xC0` (most significant 2 bits)
+/// - The green bits are represented as `0x30`
+/// - The blue bits are represented as `0x0C`
+/// - The alpha bits are represented as `0x03` (least significant 2 bits)
+/// 
+/// # Params
+/// 
+/// - `byte` - The byte to create the color from
+macro_rules! color8 {
+    ($byte:expr) => {{
+        Color {
+            r: 85 * ((($byte) & 0xC0) >> 6),
+            g: 85 * ((($byte) & 0x30) >> 4),
+            b: 85 * ((($byte) & 0x0C) >> 2),
+            a: 85 * ((($byte) & 0x03) >> 0),
+        }
+    }};
+}
+
 // --- constants --------------------------------------------------------------
 
 /// Represents the number of available registers to Chip-8
@@ -34,14 +61,10 @@ const VIDEO_BUFFER_HEIGHT: usize = 32;
 
 /// Represents the color of a single pixel on the screen buffer
 /// 
-/// This is the `GREEN` macro used by raylib in C (it is different for some
-/// reason here in Rust)
-const PIXEL_COLOR: Color = Color {
-    r: 0,
-    g: 228,
-    b: 48,
-    a: 255,
-};
+/// This a green color close to that of the one provided by the raylib library
+/// but this one is entirely 8-bit
+const PIXEL_COLOR: Color = color8!(0b00110111);
+
 /// Represents the scaling factor at which pixels are drawn to the window
 const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
 
