@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use colored::{ ColoredString, Colorize };
+
 use crate::emulator::opcode::AddressMode;
 
 // --- error definition -------------------------------------------------------
@@ -22,6 +24,9 @@ pub enum Keet8Error {
 impl Display for Keet8Error {
     /// Writes the error to the output stream
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let err_text = ColoredString::from("[ERROR]:").bold().red();
+        write!(f, "{err_text} ")?;
+
         match self {
             Keet8Error::NoROMFile => write!(f, "No ROM file specified"),
             Keet8Error::FailedToLoadROM(rom) => write!(f, "Failed to load ROM: {rom}"),

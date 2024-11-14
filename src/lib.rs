@@ -92,9 +92,8 @@ impl Application {
     ///
     /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
-        let window_title = format!("{TITLE} - {VERSION}");
-
         let (mut rl, thread) = if cfg!(debug_assertions) {
+            let window_title = format!("{TITLE} - {VERSION} (debug)");
             raylib::init()
                 .size(WINDOW_WIDTH, WINDOW_HEIGHT)
                 .title(&window_title)
@@ -105,6 +104,7 @@ impl Application {
 
         // We don't want logging for release builds
         } else {
+            let window_title = format!("{TITLE} - {VERSION}");
             raylib::init()
                 .size(WINDOW_WIDTH, WINDOW_HEIGHT)
                 .title(&window_title)
