@@ -27,7 +27,8 @@ use raylib::prelude::*;
 /// # Examples
 /// 
 /// ```rust
-/// let args = std::env::args().collect();
+/// let args = std::env::args()
+///     .collect();
 /// 
 /// if let Err(e) = keet_8::run(args) {
 ///     eprintln!("{e}");
@@ -51,14 +52,17 @@ pub fn run(args: Vec<String>) -> Result<()> {
 // --- constants --------------------------------------------------------------
 
 /// Represents the title of the emulator
-const TITLE: &'static str = "keet-8";
+const TITLE: &'static str = "Keet-8";
 /// Represents the current version of the emulator
-const VERSION: &'static str = "v0.1.0";
+const VERSION: &'static str = "v1.0.0";
 
 /// Represents the width of the window
 const WINDOW_WIDTH: i32 = 1024;
 /// Represents the height of the window
 const WINDOW_HEIGHT: i32 = 512;
+
+/// The delay in seconds between CPU cycles for the emulator (60FPS or 16.67ms)
+const EMU_STEP_DELAY: f32 = 1.0 / 60.0;
 
 // --- application definition -------------------------------------------------
 
@@ -67,14 +71,14 @@ struct Application {
     rl: RaylibHandle,
     /// The thread on which raylib is running on
     thread: RaylibThread,
-
     /// Flag indicating whether the application is still running
     is_running: bool,
     /// Flag indicating whether debug information is to be drawn on the window
     debug: bool,
-
     /// The actual Chip-8 emulator
     emulator: Emulator,
+    /// The current time in seconds for the CPU ticks
+    curr_time: f32,
 }
 
 impl Application {
@@ -89,23 +93,20 @@ impl Application {
     /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let window_title = format!("{TITLE} - {VERSION}");
-        let (mut rl, thread) = raylib::init()
+        let (rl, thread) = raylib::init()
             .size(WINDOW_WIDTH, WINDOW_HEIGHT)
             .title(&window_title)
             .vsync()
             .msaa_4x()
             .build();
 
-        rl.set_target_fps(60);
-
         Ok(Self {
             rl,
             thread,
-
             is_running: true,
             debug: false,
-
             emulator: Emulator::new(rom_file)?,
+            curr_time: 0.0
         })
     }
 
@@ -129,13 +130,24 @@ impl Application {
     ///
     /// If an error has occured during runtime of the emulator
     fn on_update(&mut self) -> Result<()> {
-        self.process_input();
-        self.emulator.step()?;
+        // Step the emulator if timer has met the delay time 
+        if self.curr_time >= EMU_STEP_DELAY {
+            self.process_input();
+            self.emulator.step()?;
 
+            self.curr_time -= EMU_STEP_DELAY;
+
+        // Otherwise accumelate the timer
+        } else {
+            self.curr_time += self.rl.get_frame_time();
+        }
+
+        // Close the application if the escape key has been pressed
         if self.rl.is_key_pressed(KeyboardKey::KEY_ESCAPE) {
             self.is_running = false;
         }
 
+        // Show debugging information when F3 has been pressed (like Minecraft)
         if self.rl.is_key_pressed(KeyboardKey::KEY_F3) {
             self.debug = !self.debug;
         }

@@ -70,6 +70,8 @@ const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
 
 // --- type definitions -------------------------------------------------------
 
+/// This type represents the functions to call to execute any of the
+/// instructions of the Chip-8 emulator
 type Executor = fn(&mut Emulator, opcode: OpCode) -> Result<()>;
 
 // --- emulator definition ----------------------------------------------------
@@ -77,17 +79,14 @@ type Executor = fn(&mut Emulator, opcode: OpCode) -> Result<()>;
 pub(crate) struct Emulator {
     /// These are the `V` registers
     registers: [u8; NUM_REGISTERS],
-
     /// This is the index register
     idx: u16,
     /// This is the program counter
     program_counter: u16,
-
     /// This is the delay timer
     delay_timer: u8,
     /// This is the sound timer
     sound_timer: u8,
-
     /// This is the call stack
     stack: CallStack,
     /// This is the available memory to Chip-8
@@ -96,7 +95,6 @@ pub(crate) struct Emulator {
     video_buffer: [u8; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
     /// This is a small array containing the state of the keys
     keypad: [u8; NUM_KEYS],
-
     /// These are all the executor functions available to our Chip-8
     /// implementation
     instructions: [Executor; 21],
@@ -116,18 +114,14 @@ impl Emulator {
     pub fn new(rom_file: &str) -> Result<Self> {
         Ok(Self {
             registers: [0; NUM_REGISTERS],
-
             idx: 0,
             program_counter: memory::PROG_ADDR,
-
             delay_timer: 0,
             sound_timer: 0,
-
             stack: CallStack::new(),
             memory: Memory::new(rom_file)?,
             video_buffer: [0; VIDEO_BUFFER_WIDTH * VIDEO_BUFFER_HEIGHT],
             keypad: [0; NUM_KEYS],
-
             instructions: [
                 Self::raw,
                 Self::cls,

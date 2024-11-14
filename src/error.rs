@@ -11,7 +11,6 @@ pub enum Keet8Error {
     /// 
     /// Also contains the filepath to the specified ROM
     FailedToLoadROM(String),
-
     /// There was an attempt to pop from the call stack, but the stack was empty
     CallStackEmpty,
     /// There was an attempt to push onto the call stack, but the stack was full
