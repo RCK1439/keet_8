@@ -65,9 +65,6 @@ const VIDEO_BUFFER_HEIGHT: usize = 32;
 /// but this one is entirely 8-bit
 const PIXEL_COLOR: Color = color8!(0b00110111);
 
-/// Represents the scaling factor at which pixels are drawn to the window
-const SCALE: i32 = crate::WINDOW_WIDTH / VIDEO_BUFFER_WIDTH as i32;
-
 // --- type definitions -------------------------------------------------------
 
 /// This type represents the functions to call to execute any of the
@@ -188,16 +185,13 @@ impl Emulator {
     ///
     /// - `d` - The draw handle provided by raylib
     pub fn draw_buffer(&mut self, d: &mut RaylibDrawHandle) {
+        let scale = d.get_screen_width() as f32 / VIDEO_BUFFER_WIDTH as f32;
+
         for y in 0..VIDEO_BUFFER_HEIGHT {
             for x in 0..VIDEO_BUFFER_WIDTH {
                 if self.video_buffer[x + y * VIDEO_BUFFER_WIDTH] > 0 {
-                    d.draw_rectangle(
-                        x as i32 * SCALE,
-                        y as i32 * SCALE,
-                        SCALE,
-                        SCALE,
-                        PIXEL_COLOR,
-                    );
+                    let cell= Rectangle::new(x as f32 * scale, y as f32 * scale, scale, scale);
+                    d.draw_rectangle_rec(cell, PIXEL_COLOR);
                 }
             }
         }

@@ -93,12 +93,29 @@ impl Application {
     /// If an error occured when loading the ROM file
     pub fn new(rom_file: &str) -> Result<Self> {
         let window_title = format!("{TITLE} - {VERSION}");
-        let (rl, thread) = raylib::init()
-            .size(WINDOW_WIDTH, WINDOW_HEIGHT)
-            .title(&window_title)
-            .vsync()
-            .msaa_4x()
-            .build();
+
+        let (mut rl, thread) = if cfg!(debug_assertions) {
+            raylib::init()
+                .size(WINDOW_WIDTH, WINDOW_HEIGHT)
+                .title(&window_title)
+                .vsync()
+                .msaa_4x()
+                .resizable()
+                .build()
+
+        // We don't want logging for release builds
+        } else {
+            raylib::init()
+                .size(WINDOW_WIDTH, WINDOW_HEIGHT)
+                .title(&window_title)
+                .vsync()
+                .msaa_4x()
+                .resizable()
+                .log_level(TraceLogLevel::LOG_NONE)
+                .build()
+        };
+
+        rl.set_window_min_size(WINDOW_WIDTH, WINDOW_HEIGHT);
 
         Ok(Self {
             rl,
@@ -143,13 +160,27 @@ impl Application {
         }
 
         // Close the application if the escape key has been pressed
-        if self.rl.is_key_pressed(KeyboardKey::KEY_ESCAPE) {
+        if self.rl.window_should_close() {
             self.is_running = false;
         }
 
         // Show debugging information when F3 has been pressed (like Minecraft)
         if self.rl.is_key_pressed(KeyboardKey::KEY_F3) {
             self.debug = !self.debug;
+        }
+
+        // Make the window fullsreen when F11 is pressed
+        if self.rl.is_key_pressed(KeyboardKey::KEY_F11) {
+            if self.rl.is_window_fullscreen() {
+                self.rl.toggle_fullscreen();
+            } else {
+                let monitor = raylib::window::get_current_monitor();
+                let width = raylib::window::get_monitor_width(monitor);
+                let height = raylib::window::get_monitor_height(monitor);
+
+                self.rl.set_window_size(width, height);
+                self.rl.toggle_fullscreen();
+            }
         }
 
         Ok(())
