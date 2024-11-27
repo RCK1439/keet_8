@@ -14,34 +14,32 @@ This is a basic implementation of a [Chip-8](https://en.wikipedia.org/wiki/CHIP-
 ```
 keet_8/
 ├── res/
-│   └── test_opcode_keet_8.png
+│   └── test_opcode_keet_8.png
 ├── src/
-│   ├── emulator
-│   │   ├── memory.rs
-│   │   ├── mod.rs
-│   │   ├── opcode.rs
-│   │   └── stack.rs
-│   ├── error.rs
-│   ├── lib.rs
-│   ├── main.rs
-│   └── prelude.rs
+│   ├── emulator/
+│   │   ├── memory.rs
+│   │   ├── mod.rs
+│   │   ├── opcode.rs
+│   │   └── stack.rs
+│   ├── error.rs
+│   ├── lib.rs
+│   ├── main.rs
+│   └── prelude.rs
 ├── tests/
-│   ├── 1-chip8-logo.ch8
-│   ├── 2-ibm-logo.ch8
-│   ├── 3-corax+.ch8
-│   ├── 4-flags.ch8
-│   ├── 5-quirks.ch8
-│   ├── 6-keypad.ch8
-│   ├── 7-beep.ch8
-│   ├── 8-scrolling.ch8
-│   ├── chip8-test-rom.ch8
-│   └── test_opcode.ch8
+│   ├── 1-chip8-logo.ch8
+│   ├── 2-ibm-logo.ch8
+│   ├── 3-corax+.ch8
+│   ├── 4-flags.ch8
+│   ├── 5-quirks.ch8
+│   ├── 6-keypad.ch8
+│   ├── 7-beep.ch8
+│   ├── 8-scrolling.ch8
+│   ├── chip8-test-rom.ch8
+│   └── test_opcode.ch8
 ├── Cargo.lock
 ├── Cargo.toml
-├── dirs.txt
 ├── LICENSE.md
 └── README.md
-
 ```
 
 ### Building
