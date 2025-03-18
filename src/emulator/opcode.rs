@@ -206,7 +206,8 @@ impl OpCode {
     /// # Params
     ///
     /// - `opcode` - The raw binary opcode in the ROM file
-    fn raw(opcode: u16) -> Self {
+    #[inline(always)]
+    const fn raw(opcode: u16) -> Self {
         Self {
             instr: Instruction::RAW,
             address_mode: AddressMode::OpCode { opcode },

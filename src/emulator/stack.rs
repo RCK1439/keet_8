@@ -19,7 +19,8 @@ impl CallStack {
     /// 
     /// This will initialize the buffer and the stack pointer to `0`
     /// indicating that the stack is empty
-    pub fn new() -> Self {
+    #[inline(always)]
+    pub const fn new() -> Self {
         Self {
             data: [0; STACK_SIZE],
             ptr: 0,
@@ -35,7 +36,8 @@ impl CallStack {
     /// # Errors
     /// 
     /// If the stack limit has been reached
-    pub fn push(&mut self, addr: u16) -> Result<()> {
+    #[inline(always)]
+    pub const fn push(&mut self, addr: u16) -> Result<()> {
         if self.ptr == STACK_SIZE {
             return Err(Keet8Error::CallStackFull);
         }
@@ -50,7 +52,8 @@ impl CallStack {
     ///
     /// Returns [Some] if the stack has a value
     /// on the stack. Returns [None] otherwise
-    pub fn pop(&mut self) -> Option<u16> {
+    #[inline(always)]
+    pub const fn pop(&mut self) -> Option<u16> {
         if self.ptr == 0 {
             return None;
         }
